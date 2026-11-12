@@ -55,6 +55,22 @@ describe('AutoComplete.vue', () => {
         expect(wrapper.findAll('.p-autocomplete-option').length).toBe(1);
     });
 
+    it('does not select a suggestion after the open autocomplete becomes disabled', async () => {
+        await wrapper.setProps({ modelValue: 'Apple' });
+        wrapper.vm.search({ target: { value: 'a' } }, 'a', 'input');
+        await wrapper.setProps({ suggestions: ['Apple', 'Orange'] });
+        const option = wrapper.findAll('.p-autocomplete-option')[1];
+
+        expect(option.text()).toBe('Orange');
+
+        await wrapper.setProps({ disabled: true });
+        await option.trigger('click');
+
+        expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+        expect(wrapper.emitted('option-select')).toBeUndefined();
+        expect(wrapper.find('input').element.value).toBe('Apple');
+    });
+
     it('should show overlay and empty-message if there are no suggestions', async () => {
         const event = { target: { value: 'b' } };
 
