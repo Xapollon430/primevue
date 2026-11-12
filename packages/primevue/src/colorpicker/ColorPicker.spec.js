@@ -36,6 +36,27 @@ describe('ColorPicker.vue', () => {
         expect(wrapper.find('.p-colorpicker-hue').exists()).toBe(true);
     });
 
+    it.each(['color-selector', 'hue'])('stops updating the value when disabled during a %s drag', async (part) => {
+        await wrapper.find('.p-colorpicker-preview').trigger('click');
+        const press = new MouseEvent('mousedown', { bubbles: true });
+
+        Object.defineProperties(press, { pageX: { value: 60 }, pageY: { value: 60 } });
+        wrapper.find(`.p-colorpicker-${part}`).element.dispatchEvent(press);
+        const updatesBeforeDisable = wrapper.emitted('update:modelValue').length;
+
+        try {
+            await wrapper.setProps({ disabled: true });
+            const move = new MouseEvent('mousemove', { bubbles: true });
+
+            Object.defineProperties(move, { pageX: { value: 120 }, pageY: { value: 90 } });
+            document.dispatchEvent(move);
+
+            expect(wrapper.emitted('update:modelValue')).toHaveLength(updatesBeforeDisable);
+        } finally {
+            document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+        }
+    });
+
     it('should mouse events triggered', async () => {
         const input = wrapper.find('input.p-colorpicker-preview');
 

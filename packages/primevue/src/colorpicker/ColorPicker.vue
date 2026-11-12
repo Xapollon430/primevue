@@ -54,6 +54,11 @@ export default {
     hueView: null,
     hueHandle: null,
     watch: {
+        disabled(value) {
+            if (value && (this.colorDragging || this.hueDragging)) {
+                this.onDragEnd();
+            }
+        },
         modelValue: {
             immediate: true,
             handler(newValue) {
