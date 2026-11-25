@@ -27,6 +27,33 @@ describe('Slider.vue', () => {
         expect(wrapper.find('.p-slider').classes()).not.toContain('p-slider-sliding');
     });
 
+    it.each([
+        { modelValue: 85, bounds: { max: 60 }, expected: 60 },
+        { modelValue: 15, bounds: { min: 40 }, expected: 40 },
+        { modelValue: [20, 85], bounds: { max: 60 }, expected: [20, 60] },
+        { modelValue: [15, 80], bounds: { min: 40 }, expected: [40, 80] }
+    ])('should end a drag within changed bounds: $modelValue', async ({ modelValue, bounds, expected }) => {
+        await wrapper.setProps({ modelValue, range: Array.isArray(modelValue) });
+        await wrapper.find('[role="slider"]').trigger('mousedown');
+        await wrapper.setProps(bounds);
+        const event = new MouseEvent('mouseup');
+
+        document.dispatchEvent(event);
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.emitted('slideend')[0][0]).toEqual({ originalEvent: event, value: expected });
+        expect(wrapper.emitted('update:modelValue')[0][0]).toEqual(expected);
+    });
+
+    it('should not update an unchanged value at drag end', async () => {
+        await wrapper.setProps({ modelValue: 50 });
+        await wrapper.find('[role="slider"]').trigger('mousedown');
+        document.dispatchEvent(new MouseEvent('mouseup'));
+
+        expect(wrapper.emitted('slideend')[0][0].value).toBe(50);
+        expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+    });
+
     it('should set value', async () => {
         wrapper.element.setAttribute('width', '14rem');
 

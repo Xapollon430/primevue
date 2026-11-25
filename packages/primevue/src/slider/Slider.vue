@@ -181,7 +181,18 @@ export default {
             if (this.dragging) {
                 this.dragging = false;
                 this.$el.setAttribute('data-p-sliding', false);
-                this.$emit('slideend', { originalEvent: event, value: this.value });
+
+                const value = this.value;
+                const clamp = (value) => Math.min(this.max, Math.max(this.min, value));
+                const modelValue = this.range ? value.map(clamp) : clamp(value);
+                const changed = this.range ? modelValue.some((entry, index) => entry !== value[index]) : modelValue !== value;
+
+                if (changed) {
+                    this.writeValue(modelValue, event);
+                    this.$emit('change', modelValue);
+                }
+
+                this.$emit('slideend', { originalEvent: event, value: modelValue });
             }
         },
         onBarClick(event) {
